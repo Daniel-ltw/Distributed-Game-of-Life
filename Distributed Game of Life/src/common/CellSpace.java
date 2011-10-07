@@ -12,7 +12,7 @@ public class CellSpace extends Canvas
 	private int cellSize;
 	private int cellRows;
 	private int cellCols;
-        private boolean cellUnderMouse;
+	private boolean cellUnderMouse;
 	private boolean cells[][];
 	private int cellsBuffer[][];
 	private Image offScreenImage = null;
@@ -30,30 +30,30 @@ public class CellSpace extends Canvas
 
 	public synchronized boolean mouseUp(java.awt.Event evt, int x, int y) {
 		// toggle cell
-                try {
-                    cells[x/cellSize][y/cellSize] = !cellUnderMouse;
-                } catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
+		try {
+			cells[x/cellSize][y/cellSize] = !cellUnderMouse;
+		} catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
 		repaint();
 		return true;
 	}
 
 	public synchronized boolean mouseDown(java.awt.Event evt, int x, int y) {
-                try {
-                    cellUnderMouse = cells[x/cellSize][y/cellSize];
-                } catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
+		try {
+			cellUnderMouse = cells[x/cellSize][y/cellSize];
+		} catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
 		return true;
-        }
+	}
 
 	public synchronized boolean mouseDrag(java.awt.Event evt, int x, int y) {
 		// toggle cell
-                try {
-        		cells[x/cellSize][y/cellSize] = !cellUnderMouse;
-                } catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
+		try {
+			cells[x/cellSize][y/cellSize] = !cellUnderMouse;
+		} catch ( java.lang.ArrayIndexOutOfBoundsException e ) {}
 		repaint();
 		return true;
 	}
 
-        public synchronized void update( Graphics theG )
+	public synchronized void update( Graphics theG )
 	{
 		Dimension d = size();
 		if((offScreenImage == null) ) {
@@ -176,37 +176,18 @@ public class CellSpace extends Canvas
 		for( x=0; x<cellCols; x++ ) {
 			for( y=0; y<cellRows; y++ ) {
 				switch( cellsBuffer[x][y] ) {
-					case 2:
-						// no change
-						break;
-					case 3:
-						cells[x][y] = true;
-						break;
-					default:
-						cells[x][y] = false;
-						break;
+				case 2:
+					// no change
+					break;
+				case 3:
+					cells[x][y] = true;
+					break;
+				default:
+					cells[x][y] = false;
+					break;
 				}
 			}
 		}
 
 	}
-
-	// draws shape in cells
-	// returns false if shape doesn't fit
-	public synchronized boolean drawShape( int shapeWidth, int shapeHeight, int shape[] ) {
-		int xOffset;
-		int yOffset;
-
-		if ( shapeWidth>cellCols || shapeHeight>cellRows )
-			return false; // shape doesn't fit on canvas
-
-		// center the shape
-		xOffset = (cellCols-shapeWidth)/2;
-		yOffset = (cellRows-shapeHeight)/2;
-		clear();
-		for ( int i=0; i < shape.length; i+=2 )
-			cells[xOffset+shape[i]][yOffset+shape[i+1]] = true;
-		return true;
-	}
-
 }
