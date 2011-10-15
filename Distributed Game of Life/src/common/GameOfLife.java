@@ -16,15 +16,8 @@ public class GameOfLife extends JFrame implements Runnable
 {
 	private CellSpace cellSpace;
 	private Thread gameThread = null;
-	private int genTime;
+	private int genTime = 500;
 	private final String clear = "Clear";
-	private final String glider = "Glider";
-	private final String exploder1 = "Small Exploder";
-	private final String exploder2 = "Exploder";
-	private final String row10 = "10 Cell Row";
-	private final String fish = "Fish";
-	private final String pump = "Pump";
-	private final String gun = "Shooter";
 	private final String slow = "Slow";
 	private final String fast = "Fast";
 	private final String hyper = "Hyper";
@@ -36,9 +29,9 @@ public class GameOfLife extends JFrame implements Runnable
 
 	public GameOfLife()
 	{
-		int cellSize;
-		int cellCols;
-		int cellRows;
+		int cellSize = 15;
+		int cellCols = 10;
+		int cellRows = 10;
 		String param = null;
 
 		setTitle("Game of Life");
@@ -46,31 +39,6 @@ public class GameOfLife extends JFrame implements Runnable
 		setBackground( new Color( 0x999999 ) );
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		// read parameters from HTML
-		//param = getParameter("cellsize");
-		if ( param == null) {
-			cellSize = 15;
-		} else
-			cellSize = Integer.valueOf( param ).intValue();
-
-		//param = getParameter("cellcols");
-		if ( param == null ) {
-			cellCols = 10;
-		} else
-			cellCols = Integer.valueOf( param ).intValue();
-
-		//param = getParameter("cellrows");
-		if ( param == null ) {
-			cellRows = 10;
-		} else
-			cellRows = Integer.valueOf( param ).intValue();
-
-		//param = getParameter("gentime");
-		if ( param == null ) {
-			genTime = 500;
-		} else
-			genTime = Integer.valueOf( param ).intValue();
 
 		// create components and add them to container
 		cellSpace = new CellSpace( cellSize, cellCols, cellRows );
@@ -93,9 +61,6 @@ public class GameOfLife extends JFrame implements Runnable
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add( controls, BorderLayout.SOUTH );
 		getContentPane().add( cellSpace, BorderLayout.NORTH );
-		//show();
-		//resize( preferredSize() );
-		//validate();
 		pack(); 
 		setVisible(true);
 	}
