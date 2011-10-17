@@ -40,6 +40,11 @@ class ClientServiceThread extends Thread {
 			while (running) {
 				//ostream.writeObject(obj);
 			}
+			in.close();
+			out.flush(); 
+			out.close();
+			ostream.flush();
+			ostream.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
