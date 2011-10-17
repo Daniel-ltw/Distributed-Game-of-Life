@@ -45,7 +45,7 @@ public class Lifeform implements Serializable{
 	 * @param b
 	 * @return 
 	 */
-	public void setCell(int cellX, int cellY, boolean b){
+	public synchronized void setCell(int cellX, int cellY, boolean b){
 		cells[cellX][cellY] = b;
 	}
 	
@@ -73,7 +73,7 @@ public class Lifeform implements Serializable{
 	}
 	
 
-    public String toString() {
+    public String toString(){
         if (cells == null) return "Empty";
         HashMap<Integer, Integer> a = new HashMap<Integer, Integer>(cellRows);
         String s = "____________________", state = "d";
@@ -101,5 +101,21 @@ public class Lifeform implements Serializable{
         	s += "|, " + state;
         }
         return s;
+    }
+    
+    /**
+     * 
+     * @return cellCols
+     */
+    public int cols(){
+    	return cellCols;
+    }
+
+    /**
+     * 
+     * @return cellRows
+     */
+    public int rows(){
+    	return cellRows;
     }
 }

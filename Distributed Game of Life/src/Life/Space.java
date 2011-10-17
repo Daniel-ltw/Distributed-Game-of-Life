@@ -37,10 +37,10 @@ public class Space {
 	synchronized public void postnote(Note n) {
 		post(n);
 	}
-	synchronized public void postnote(String id, Lifeform l) {
-		post(new Note(id, l));
+	synchronized public void postnote(String id, int gens, Lifeform l) {
+		post(new Note(id, gens, l));
 	}
-	synchronized public void postnote(String id, int x, int y) {
+	synchronized public void postnote(String id, int gens, int x, int y) {
 		for(int val = 0; val < (x*y); val++){
 			Lifeform life = new Lifeform(x, y);
 			String bi = Integer.toBinaryString(val);
@@ -56,7 +56,9 @@ public class Space {
 					}
 				}
 			}
-			post(new Note(id, life));
+			post(new Note(id, gens, life));
+			post(new Note(id, gens, life));
+			post(new Note(id, gens, life));
 		}
 	}
 
@@ -67,18 +69,18 @@ public class Space {
 	}
 
 	// Read/remove note: perform match
-	synchronized public Note removenote(Note n) {
-		return readRemove(n, true);
+	synchronized public Note removenote(String id) {
+		return readRemove(id, true);
 	}
 
-	synchronized public Note readnote(Note n) {
-		return readRemove(n, false);
+	synchronized public Note readnote(String id) {
+		return readRemove(id, false);
 	}
 
 	// Read/remove note - search for note until found or wait
-	synchronized private Note readRemove(Note t, boolean remove) {
+	synchronized private Note readRemove(String id, boolean remove) {
 		while (true) {
-			int i = searchNote(t);
+			int i = searchNote(id);
 			if (i < space.size()) { 
 				Note n = (Note) space.get(i);
 				if (remove) space.remove(i);
@@ -90,19 +92,19 @@ public class Space {
 
 	// Search for a match on the space; formal matches anything
 	// Return index of element found or size() to indicate not found
-	synchronized private int searchNote(Note t) {
+	synchronized private int searchNote(String id) {
 		int i = 0; 
 		boolean found = false;
 		while (!found && (i < space.size())) {
 			Note n = (Note) space.get(i);
 			// Note id's must match
-			found = (n.id.equals(t.id));
-			// Null element arrays match anything
+			found = (n.id.equals(id));
+			/*// Null element arrays match anything
 			if (found && (t.l != null) && (n.l != null)) {
 				// Lengths of element arrays must match
 				found = found && (t.l.size() == n.l.size());
 				found = found && (t.l.toString().equals(n.l.toString()));
-			}
+			}*/
 			if (!found) i++;
 		}
 		return (found ? i : space.size());
