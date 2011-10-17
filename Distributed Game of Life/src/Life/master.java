@@ -14,18 +14,18 @@ public class master {
 		int id = 0;
 		while (true) {
 			Socket clientSocket = m_ServerSocket.accept();
-			ClientServiceThread cliThread = new ClientServiceThread(clientSocket, id++);
+			ClientService cliThread = new ClientService(clientSocket, id++);
 			cliThread.start();
 		}
 	}
 }
 
-class ClientServiceThread extends Thread {
+class ClientService extends Thread {
 	Socket clientSocket;
 	int clientID = -1;
 	boolean running = true;
 
-	public ClientServiceThread(Socket s, int i) {
+	public ClientService(Socket s, int i) {
 		clientSocket = s;
 		clientID = i;
 	}
@@ -40,11 +40,6 @@ class ClientServiceThread extends Thread {
 			while (running) {
 				//ostream.writeObject(obj);
 			}
-			in.close();
-			out.flush(); 
-			out.close();
-			ostream.flush();
-			ostream.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
