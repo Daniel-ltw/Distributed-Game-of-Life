@@ -1,9 +1,10 @@
 package Life;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Lifeform {
+public class Lifeform implements Serializable{
 	private boolean cells[][];
 	private int cellRows;
 	private int cellCols;
