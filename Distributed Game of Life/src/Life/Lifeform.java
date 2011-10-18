@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Lifeform implements Serializable{
+	
 	private boolean cells[][];
-	private int cellRows;
-	private int cellCols;
-	private int id;
+	private int cellRows, cellsBuffer[][], cellCols, id, generations;
+	private boolean toString;
 	
 	/**
 	 * Creates a define shape from the given arraylist of integer x and y
@@ -21,6 +21,7 @@ public class Lifeform implements Serializable{
 		this.cellCols = cellCols;
 		this.cellRows = cellRows;
 		cells = new boolean[cellCols][cellRows];
+		cellsBuffer= new int[cellCols][cellRows];
 		clear();
 		for(int x = 0; x < listx.size(); x++){
 			cells[listx.get(x)][listy.get(x)] = true;
@@ -37,6 +38,7 @@ public class Lifeform implements Serializable{
 		this.cellCols = cellCols;
 		this.cellRows = cellRows;
 		cells = new boolean[cellCols][cellRows];
+		cellsBuffer= new int[cellCols][cellRows];
 		clear();
 	}
 	
@@ -80,32 +82,34 @@ public class Lifeform implements Serializable{
 	
 
     public String toString(){
+    	toString = true;
         if (cells == null) return "Empty";
-        HashMap<Integer, Integer> a = new HashMap<Integer, Integer>(cellRows);
+        
+        // should re-implement this to incorporate next to verify the liveness
         String s = "____________________", state = "d";
         for(int x = 0; x < cellCols; x++){
         	s += "\n";
         	for(int y = 0; y < cellRows; y++){
         		if(cells[x][y] == true){
         			s += "|1";
-        			a.put(y, 1);
         		} else {
         			s += "|0";
-        			a.put(y, 1);
         		}
-        	}
-        	if(!a.containsValue(0)){
-        		state = "s"; 
-        	}
-        	int count = 0;
-        	for(int k:a.values()){
-        		if(k == 1) count++;
-        	}
-        	if(count >= 2 && count < 4){
-        		state = "l";
+        		switch( cellsBuffer[x][y] ) {
+				case 2:
+					state = "s";
+					break;
+				case 3:
+					state = "l";
+					break;
+				default:
+					state = "d";
+					break;
+				}
         	}
         	s += "|, " + state;
         }
+        toString = false;
         return s;
     }
     
@@ -124,4 +128,116 @@ public class Lifeform implements Serializable{
     public int rows(){
     	return cellRows;
     }
+
+    /**
+     * 
+     * @return generations
+     */
+    public int gens(){
+    	return generations;
+    }
+    
+
+	
+	/**
+	 * Client running lifeform generations
+	 */
+	public synchronized void next() {
+		int x;
+		int y;
+
+		generations++;
+		// clear the buffer
+		for( x=0; x<cellCols; x++ ) {
+			for( y=0; y<cellRows; y++ ) {
+				cellsBuffer[x][y] = 0;
+			}
+		}
+
+		// count neighbors of off-edge cells
+		for( x=1; x<cellCols-1; x++ ) {
+			for( y=1; y<cellRows-1; y++ ) {
+				if ( this.check(x, y) ) {
+					cellsBuffer[x-1][y-1]++;
+					cellsBuffer[x][y-1]++;
+					cellsBuffer[x+1][y-1]++;
+					cellsBuffer[x-1][y]++;
+					cellsBuffer[x+1][y]++;
+					cellsBuffer[x-1][y+1]++;
+					cellsBuffer[x][y+1]++;
+					cellsBuffer[x+1][y+1]++;
+				}
+			}
+		}
+
+		// count neighbors of edge cells
+		x=1; // start at (1,0)
+		y=0;
+		int dx=1;
+		int dy=0;
+		while( true ) {
+			if ( this.check(x, y) ) {
+				if ( x > 0 ) {
+					if ( y > 0 )
+						cellsBuffer[x-1][y-1]++;
+					if ( y < cellRows-1 )
+						cellsBuffer[x-1][y+1]++;
+					cellsBuffer[x-1][y]++;
+				}
+				if ( x < cellCols-1 ) {
+					if ( y < cellRows-1 )
+						cellsBuffer[x+1][y+1]++;
+					if ( y > 0 )
+						cellsBuffer[x+1][y-1]++;
+					cellsBuffer[x+1][y]++;
+				}
+				if ( y > 0 )
+					cellsBuffer[x][y-1]++;
+				if ( y < cellRows-1 )
+					cellsBuffer[x][y+1]++;
+			}
+
+			// turn clockwise at collision with edge
+			if ( x==cellCols-1 && y==0 ) {
+				dx = 0;
+				dy = 1;
+			} else if ( x==cellCols-1 && y==cellRows-1 ) {
+				dx = -1;
+				dy = 0;
+			} else if ( x==0 && y==cellRows-1 ) {
+				dx = 0;
+				dy = -1;
+			} else if ( x==0 && y==0 ) {
+				// all edge cells done
+				break;
+			}
+			x += dx;
+			y += dy;
+		}
+		
+		if(!toString){
+			transform();
+		}
+		
+	}
+
+	private void transform() {
+		// here is the life algorithm
+		// simple, isn't it?
+		for( int x = 0; x<cellCols; x++ ) {
+			for( int y = 0; y<cellRows; y++ ) {
+				switch( cellsBuffer[x][y] ) {
+				case 2:
+					// no change
+					break;
+				case 3:
+					this.setCell(x, y, true);
+					break;
+				default:
+					this.setCell(x, y, false);
+					break;
+				}
+			}
+		}
+	}
 }

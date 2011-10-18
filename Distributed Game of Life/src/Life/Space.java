@@ -79,11 +79,13 @@ public class Space implements Serializable{
 			Note n = (Note) space.get(i);
 			// Note id's must match
 			found = (n.id.equals(t.id));
+			// Note specific id must match
+			found = found && (n.getNID() == t.getNID());
 			// Null element arrays match anything
 			if (found && (t.l != null) && (n.l != null)) {
-				// Lengths of element arrays must match
-				found = found && (t.l.size() == n.l.size());
-				found = found && (t.l.toString().equals(n.l.toString()));
+				// lifeform specific id must match
+				found = found && (t.l.getID() == n.l.getID());
+				//found = found && (t.l.toString().equals(n.l.toString()));
 			}
 			if (!found) i++;
 		}

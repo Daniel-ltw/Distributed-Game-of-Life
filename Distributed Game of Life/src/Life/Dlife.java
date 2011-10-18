@@ -59,7 +59,7 @@ class Generator {
 		this.rows = rows;
 		this.cols = cols;
 
-		for(int val = 0; val < (cols*rows); val++){
+		for(int val = 0; val < Math.pow(2, cols*rows); val++){
 			id++;
 			Lifeform life = new Lifeform(id, cols, rows);
 			String bi = Integer.toBinaryString(val);
@@ -71,12 +71,13 @@ class Generator {
 			int i = 0;
 			for(int xA = 0; xA < cols; xA++){
 				for(int yA = 0; yA < rows; yA++){
-					if(bi.charAt(i) == 1){
+					if(Character.getNumericValue(bi.charAt(i)) == 1){
 						life.setCell(xA, yA, true);
 					}
 					i++;
 				}
 			}
+			System.out.println(life.toString());
 			nid++; 
 			Note n = new Note("T", gen, life, nid);
 			notes.put(n.getNID(), n);
@@ -126,16 +127,21 @@ class ClientService extends Thread {
 		try {
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 			in = new ObjectInputStream(clientSocket.getInputStream());
-			//while(running){
+			//while(g.counts.get(g.notes.size() - 1) == null){
+				if(g.counts.get(g.notes.size() - 1) != null && 
+						g.counts.get(g.notes.size() - 1) >= 3) {
+					return;
+				}
+					
 				for(int i = 0; i < g.notes.size(); i++) {
 					Note n = g.notes.get(i); 
-					System.out.println("Life id = " + n.l.getID());
-					if(g.counts.get(n.l.getID()) != null){
-						while(g.counts.get(n.l.getID()) >= 3){
+					int lID = n.l.getID();
+					if(g.counts.get(lID) != null){
+						while(g.counts.get(lID) >= 3){
 							return;
 						}
 
-						if(g.counts.get(n.l.getID()) == 2){
+						if(g.counts.get(lID) == 2){
 							n = space.removenote(n);
 						} else {
 							n = space.readnote(n);
@@ -146,17 +152,16 @@ class ClientService extends Thread {
 					out.writeObject(n);
 					Thread.sleep(1000);
 					n = (Note) in.readObject();
-					System.out.println("Life id = " + n.l.getID());
 					int count;
-					if(g.counts.get(n.l.getID()) != null){
-						count = g.counts.get(n.l.getID());
+					if(g.counts.get(lID) != null){
+						count = g.counts.get(lID);
 						count++;
-						g.counts.put(n.l.getID(), count);
+						g.counts.put(lID, count);
 					} else {
 						count = 1;
 					}
 					space.postnote(n); 
-					result.put(n.l.getID(), n.r); 
+					result.put(lID, n.r); 
 				}
 			//}
 			in.close(); 
