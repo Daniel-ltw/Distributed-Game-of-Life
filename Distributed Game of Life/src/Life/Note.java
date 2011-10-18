@@ -1,4 +1,7 @@
 package Life;
+
+import java.io.Serializable;
+
 /*
     Implementation of a Linda Tuple Space.
     Author: Moti Ben-Ari, 2004.
@@ -8,15 +11,18 @@ package Life;
     Method get(int) returns the i'th integer element.
 */  
 
-public class Note {
-    public String id, r;
+public class Note implements Serializable{
+
+	public String id, r;
     public Lifeform l;
     public int g;
+    private int nid;
     
-    public Note (String id, int gens, Lifeform life) {
-        if (id == null || gens <= 0) System.exit(1);
+    public Note (String id, int gens, Lifeform life, int nid) {
+        if (id == null || gens <= 0 || nid < 0) System.exit(1);
         this.id = id;
         this.g = gens; 
+        this.nid = nid;
         if (life != null) this.l = life;
     }
     
@@ -25,6 +31,10 @@ public class Note {
         this.id = id;
         if (l != null) this.l = l;
         if (result != null) this.r = result;
+    }
+    
+    public int getNID(){
+    	return nid;
     }
 
     public String toString() {

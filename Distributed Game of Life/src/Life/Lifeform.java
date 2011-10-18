@@ -8,6 +8,7 @@ public class Lifeform implements Serializable{
 	private boolean cells[][];
 	private int cellRows;
 	private int cellCols;
+	private int id;
 	
 	/**
 	 * Creates a define shape from the given arraylist of integer x and y
@@ -31,11 +32,16 @@ public class Lifeform implements Serializable{
 	 * @param cellCols
 	 * @param cellRows
 	 */
-	public Lifeform(int cellCols, int cellRows){
+	public Lifeform(int id, int cellCols, int cellRows){
+		this.id = id;
 		this.cellCols = cellCols;
 		this.cellRows = cellRows;
 		cells = new boolean[cellCols][cellRows];
 		clear();
+	}
+	
+	public int getID(){
+		return id;
 	}
 	
 	/**

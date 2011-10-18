@@ -1,11 +1,8 @@
 package Life;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -18,12 +15,12 @@ public class DLifeWorker {
 
 	public static void main(String[] args) throws Exception {
 
-		if(args[0] != "DLifeWorker" || !args[2].matches("[0-9]*")) {
+		if(!args[1].matches("[0-9]*")) {
 			System.out.println(command);
 			System.exit(1);
 		}
 		
-		ClientSocket client = new ClientSocket(args[1], Integer.parseInt(args[2]));
+		ClientSocket client = new ClientSocket(args[0], Integer.parseInt(args[1]));
 		System.out.println("Connected to server. \n" +
 				"Commencing generations of Life. \n");
 		client.start();
@@ -33,20 +30,19 @@ public class DLifeWorker {
 class ClientSocket extends Thread{
 	
 	private Socket socket = null;
-	private PrintWriter out = null;
-	private BufferedReader in = null;
-	private ObjectInputStream  oiStream = null;
-	private boolean running = false; 
+	private ObjectInputStream  in = null;
+	private ObjectOutputStream  out = null;
 	private Lifeform life;
 	private int cellsBuffer[][], generations;
 	
 	public ClientSocket(String hostname, int port){
+		
 		//Create socket connection
 		try{
 			socket = new Socket(hostname, port);
-			out = new PrintWriter(socket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			oiStream = new ObjectInputStream(socket.getInputStream());
+			socket.setKeepAlive(true); 
+			in = new ObjectInputStream(socket.getInputStream());
+			out = new ObjectOutputStream(socket.getOutputStream());
 		} catch (UnknownHostException e) {
 			System.out.println("Unknown host: ????");
 			System.exit(1);
@@ -58,30 +54,35 @@ class ClientSocket extends Thread{
 
 	@Override
 	public void run() {
-		Space s; 
-		while(running){
+		Note n; 
+		while(!socket.isClosed()){
 			try {
 				//retrieve the space as a medium
-				s = (Space) oiStream.readObject();
+				n = (Note) in.readObject();
 				
 				//read and remove note as according
 				//then generate and post result
-				Note n = s.removenote("T");
 				life = n.l;
+				cellsBuffer = new int[n.l.cols()][n.l.rows()]; 
 				
 				while(generations <= n.g){
 					next();
 				}
 				
-				//post result note to space
-				s.postnote(new Note("R", n.l, life.toString()));
+				//send result back to server
+				out.writeObject(new Note("R", n.l, life.toString()));
+				System.out.println(life.toString());
+				out.flush();
 				
 			} catch (IOException e) {
 				e.printStackTrace();
+				System.exit(1);
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
+				System.exit(1);
 			} 
 		}
+		System.exit(0); 
 	}
 		
 	/**
