@@ -129,6 +129,7 @@ public class Lifeform implements Serializable{
 					break;
 				}
 			}
+			if(states.get(x) == null) states.put(x, "d");
 			s += "|, " + states.get(x);
 		}
 		toString = false;
