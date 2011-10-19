@@ -83,15 +83,16 @@ public class Lifeform implements Serializable{
 
 	public String toString(){
 		toString = true;
-		int y;
 		if (cells == null) return "Empty";
+		
+		next();
 
 		// should re-implement this to incorporate next to verify the liveness
-		String s = "____________________", state = "d";
+		String s = "____________________", sta = "d";
 		HashMap<Integer, String> states = new HashMap<Integer, String>(cellRows);
 		for(int x = 0; x < cellCols; x++){
 			s += "\n";
-			for(y = 0; y < cellRows; y++){
+			for(int y = 0; y < cellRows; y++){
 				if(cells[x][y] == true){
 					s += "|1";
 				} else {
@@ -101,29 +102,33 @@ public class Lifeform implements Serializable{
 				case 2:
 					if(states.containsKey(y)){
 						if(states.get(y) != "l"){
-							state = "s";
-							states.put(y, state);
+							sta = "s";
+							states.put(y, sta);
 						}
+					} else {
+						sta = "s";
+						states.put(y, sta);
 					}
 					break;
 				case 3:
-					state = "l";
+					sta = "l";
+					states.put(y, sta);
 					break;
 				default:
 					if(states.containsKey(y)){
-						if(states.get(y) != "l" || 
-								states.get(y) != "s"){
-							state = "d";
-							states.put(y, state);
+						if(states.get(y) == "d"){
+							sta = "d";
+							states.put(y, sta);
 						}
 					} else {
-						state = "d";
-						states.put(y, state);
+						sta = "d";
+						states.put(y, sta);
 					}
 					break;
 				}
 			}
-			s += "|, " + states.get(y);
+			System.out.println("Value x = " + x);
+			s += "|, " + states.get(x);
 		}
 		toString = false;
 		return s;
