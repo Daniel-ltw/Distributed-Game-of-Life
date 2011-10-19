@@ -128,19 +128,20 @@ class ClientService extends Thread {
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 			in = new ObjectInputStream(clientSocket.getInputStream());
 			//while(g.counts.get(g.notes.size() - 1) == null){
-				if(g.counts.get(g.notes.size() - 1) != null && 
-						g.counts.get(g.notes.size() - 1) >= 3) {
-					return;
-				}
-					
-				for(int i = 0; i < g.notes.size(); i++) {
-					Note n = g.notes.get(i); 
-					int lID = n.l.getID();
-					if(g.counts.get(lID) != null){
-						while(g.counts.get(lID) >= 3){
-							return;
-						}
+			if(g.counts.get(g.notes.size() - 1) != null && 
+					g.counts.get(g.notes.size() - 1) >= 3) {
+				return;
+			}
 
+			for(int i = 0; i < g.notes.size(); i++) {
+				Note n = g.notes.get(i); 
+				int lID = n.l.getID();
+				if(g.counts.get(lID) != null && 
+						g.counts.get(lID) >= 3){
+					i++;
+				} else {
+					if(g.counts.get(lID) != null && 
+							g.counts.get(lID) <= 3){
 						if(g.counts.get(lID) == 2){
 							n = space.removenote(n);
 						} else {
@@ -150,19 +151,20 @@ class ClientService extends Thread {
 						n = space.readnote(n);
 					}
 					out.writeObject(n);
-					Thread.sleep(1000);
+					Thread.sleep(100);
 					n = (Note) in.readObject();
 					int count;
 					if(g.counts.get(lID) != null){
 						count = g.counts.get(lID);
 						count++;
-						g.counts.put(lID, count);
 					} else {
 						count = 1;
 					}
+					g.counts.put(lID, count);
 					space.postnote(n); 
 					result.put(lID, n.r); 
 				}
+			}
 			//}
 			in.close(); 
 			out.close(); 
@@ -180,7 +182,7 @@ class ClientService extends Thread {
 			} else {
 				f.createNewFile();
 			}
-			
+
 			try {
 				String s ="";
 				BufferedWriter file = new BufferedWriter(

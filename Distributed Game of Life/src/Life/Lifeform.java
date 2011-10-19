@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Lifeform implements Serializable{
-	
+
 	private boolean cells[][];
 	private int cellRows, cellsBuffer[][], cellCols, id, generations;
 	private boolean toString;
-	
+
 	/**
 	 * Creates a define shape from the given arraylist of integer x and y
 	 * @param cellCols
@@ -27,7 +27,7 @@ public class Lifeform implements Serializable{
 			cells[listx.get(x)][listy.get(x)] = true;
 		}
 	}
-	
+
 	/**
 	 * Creates a empty lifeform
 	 * @param cellCols
@@ -41,11 +41,11 @@ public class Lifeform implements Serializable{
 		cellsBuffer= new int[cellCols][cellRows];
 		clear();
 	}
-	
+
 	public int getID(){
 		return id;
 	}
-	
+
 	/**
 	 * set the respective cell with the specified boolean
 	 * @param cellX
@@ -56,11 +56,11 @@ public class Lifeform implements Serializable{
 	public synchronized void setCell(int cellX, int cellY, boolean b){
 		cells[cellX][cellY] = b;
 	}
-	
+
 	public boolean check(int x, int y){
 		return cells[x][y];
 	}
-	
+
 	public int size(){
 		int result = 0; 
 		for(int x = 0; x < cellCols; x++){
@@ -70,7 +70,7 @@ public class Lifeform implements Serializable{
 		}
 		return result;
 	}
-	
+
 	// clears canvas
 	public synchronized void clear() {
 		for( int x=0; x<cellCols; x++ ) {
@@ -79,66 +79,82 @@ public class Lifeform implements Serializable{
 			}
 		}
 	}
-	
 
-    public String toString(){
-    	toString = true;
-        if (cells == null) return "Empty";
-        
-        // should re-implement this to incorporate next to verify the liveness
-        String s = "____________________", state = "d";
-        for(int x = 0; x < cellCols; x++){
-        	s += "\n";
-        	for(int y = 0; y < cellRows; y++){
-        		if(cells[x][y] == true){
-        			s += "|1";
-        		} else {
-        			s += "|0";
-        		}
-        		switch( cellsBuffer[x][y] ) {
+
+	public String toString(){
+		toString = true;
+		int y;
+		if (cells == null) return "Empty";
+
+		// should re-implement this to incorporate next to verify the liveness
+		String s = "____________________", state = "d";
+		HashMap<Integer, String> states = new HashMap<Integer, String>(cellRows);
+		for(int x = 0; x < cellCols; x++){
+			s += "\n";
+			for(y = 0; y < cellRows; y++){
+				if(cells[x][y] == true){
+					s += "|1";
+				} else {
+					s += "|0";
+				}
+				switch( cellsBuffer[x][y] ) {
 				case 2:
-					state = "s";
+					if(states.containsKey(y)){
+						if(states.get(y) != "l"){
+							state = "s";
+							states.put(y, state);
+						}
+					}
 					break;
 				case 3:
 					state = "l";
 					break;
 				default:
-					state = "d";
+					if(states.containsKey(y)){
+						if(states.get(y) != "l" || 
+								states.get(y) != "s"){
+							state = "d";
+							states.put(y, state);
+						}
+					} else {
+						state = "d";
+						states.put(y, state);
+					}
 					break;
 				}
-        	}
-        	s += "|, " + state;
-        }
-        toString = false;
-        return s;
-    }
-    
-    /**
-     * 
-     * @return cellCols
-     */
-    public int cols(){
-    	return cellCols;
-    }
+			}
+			s += "|, " + states.get(y);
+		}
+		toString = false;
+		return s;
+	}
 
-    /**
-     * 
-     * @return cellRows
-     */
-    public int rows(){
-    	return cellRows;
-    }
+	/**
+	 * 
+	 * @return cellCols
+	 */
+	public int cols(){
+		return cellCols;
+	}
 
-    /**
-     * 
-     * @return generations
-     */
-    public int gens(){
-    	return generations;
-    }
-    
+	/**
+	 * 
+	 * @return cellRows
+	 */
+	public int rows(){
+		return cellRows;
+	}
 
-	
+	/**
+	 * 
+	 * @return generations
+	 */
+	public int gens(){
+		return generations;
+	}
+
+
+
 	/**
 	 * Client running lifeform generations
 	 */
@@ -214,11 +230,11 @@ public class Lifeform implements Serializable{
 			x += dx;
 			y += dy;
 		}
-		
+
 		if(!toString){
 			transform();
 		}
-		
+
 	}
 
 	private void transform() {
