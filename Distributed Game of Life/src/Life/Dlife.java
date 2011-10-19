@@ -29,17 +29,64 @@ public class Dlife {
 
 		Generator g = new Generator(Integer.parseInt(args[0]), 
 				Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+		g.start();
 
 		ServerSocket m_ServerSocket = new ServerSocket();
 		m_ServerSocket.bind(m_ServerSocket.getLocalSocketAddress());
 		System.out.println("Server running on port: " + m_ServerSocket.getLocalPort());
 		int id = 0;
-		while (true) {
+		
+		Timer t = new Timer();
+		
+		while (g.isAlive()) {
 			Socket clientSocket = m_ServerSocket.accept();
 			ClientService cliThread = new ClientService(clientSocket, id++, g);
 			cliThread.start();
+			t.start(); 
+		}
+		t.running = false;
+		
+		// Generate report
+		File f = new File("LifeGen Report Server - " +
+				g.getGen() + " - " +
+				g.getRows() + " - " + 
+				g.getCols() + " - " + ".txt");
+
+		if(f.exists()){
+			f.delete(); 
+		} else {
+			f.createNewFile();
+		}
+
+		try {
+			BufferedWriter file = new BufferedWriter(
+					new FileWriter(f));
+			
+			file.write(t.time + "mins to complete all jobs"); 
+			file.close();
+		} catch (IOException e) {
 		}
 	}
+}
+
+class Timer extends Thread{
+
+	public boolean running = true;
+	public int time = 0;
+
+	@Override
+	public void run() {
+		while(running){
+			try {
+				Thread.sleep(1000);
+				time++;
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
 }
 
 class Generator extends Thread{
@@ -51,13 +98,11 @@ class Generator extends Thread{
 	public HashMap<Integer, Integer> counts = new HashMap<Integer, Integer>();
 
 	public Generator(int gen, int rows, int cols) {
-
 		this.gen = gen;
 		this.rows = rows;
 		this.cols = cols;
-
 	}
-	
+
 	@Override
 	public void run() {
 		for(int val = 0; val < Math.pow(2, cols*rows); val++){
@@ -92,7 +137,7 @@ class Generator extends Thread{
 		}
 		System.out.println("Notes Size = " + notes.size());
 	}
-	
+
 	public synchronized Space getSpace(){
 		return space;
 	}
@@ -172,7 +217,7 @@ class ClientService extends Thread {
 				out.writeObject(null);
 				in.close(); 
 				out.close(); 
-				
+
 				// nothing is done to remedy if the client fail before this stage. 
 
 				System.out.println("Report Size = " + result.size());
@@ -183,7 +228,7 @@ class ClientService extends Thread {
 						g.getRows() + " - " + 
 						g.getCols() + " - " + 
 						clientSocket.getInetAddress().getHostName() +
-						".txt");
+				".txt");
 
 				if(f.exists()){
 					f.delete(); 
