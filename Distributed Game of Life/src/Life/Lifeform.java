@@ -84,7 +84,7 @@ public class Lifeform implements Serializable{
 	public String toString(){
 		toString = true;
 		if (cells == null) return "Empty";
-		
+
 		next();
 
 		// should re-implement this to incorporate next to verify the liveness
@@ -100,14 +100,16 @@ public class Lifeform implements Serializable{
 				}
 				switch( cellsBuffer[x][y] ) {
 				case 2:
-					if(states.containsKey(y)){
-						if(states.get(y) != "l"){
+					if(cells[x][y] == true){
+						if(states.containsKey(y)){
+							if(states.get(y) != "l"){
+								sta = "s";
+								states.put(y, sta);
+							}
+						} else {
 							sta = "s";
 							states.put(y, sta);
 						}
-					} else {
-						sta = "s";
-						states.put(y, sta);
 					}
 					break;
 				case 3:
@@ -127,7 +129,6 @@ public class Lifeform implements Serializable{
 					break;
 				}
 			}
-			System.out.println("Value x = " + x);
 			s += "|, " + states.get(x);
 		}
 		toString = false;
