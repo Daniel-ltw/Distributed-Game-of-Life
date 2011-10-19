@@ -9,10 +9,6 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.Vector;
 
 public class Dlife {
 
@@ -46,7 +42,8 @@ public class Dlife {
 	}
 }
 
-class Generator {
+class Generator extends Thread{
+
 	private Space space = new Space();
 	private int gen, rows, cols;
 	private static int nid = -1, id = -1;
@@ -59,6 +56,10 @@ class Generator {
 		this.rows = rows;
 		this.cols = cols;
 
+	}
+	
+	@Override
+	public void run() {
 		for(int val = 0; val < Math.pow(2, cols*rows); val++){
 			id++;
 			Lifeform life = new Lifeform(id, cols, rows);
@@ -81,11 +82,17 @@ class Generator {
 			nid++; 
 			Note n = new Note("T", gen, life, nid);
 			notes.put(n.getNID(), n);
+			while(space.Size() >= 50){
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				} 
+			}
 			space.postnote(n); 
 		}
 		System.out.println("Notes Size = " + notes.size());
 	}
-
+	
 	public synchronized Space getSpace(){
 		return space;
 	}
@@ -107,7 +114,6 @@ class ClientService extends Thread {
 	private Socket clientSocket;
 	private int clientID = -1;
 	private Generator g;
-	private boolean running = true; 
 
 	public ClientService(Socket s, int i, Generator g) {
 		clientSocket = s;
@@ -127,73 +133,76 @@ class ClientService extends Thread {
 		try {
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 			in = new ObjectInputStream(clientSocket.getInputStream());
-			//while(g.counts.get(g.notes.size() - 1) == null){
 			if(g.counts.get(g.notes.size() - 1) != null && 
 					g.counts.get(g.notes.size() - 1) >= 3) {
-				return;
-			}
+				// do nothing as the jobs has already been done
+			} else {
 
-			for(int i = 0; i < g.notes.size(); i++) {
-				Note n = g.notes.get(i); 
-				int lID = n.l.getID();
-				if(g.counts.get(lID) != null && 
-						g.counts.get(lID) >= 3){
-					i++;
-				} else {
+				for(int i = 0; i < g.notes.size(); i++) {
+					Note n = g.notes.get(i); 
+					int lID = n.l.getID();
 					if(g.counts.get(lID) != null && 
-							g.counts.get(lID) <= 3){
-						if(g.counts.get(lID) == 2){
-							n = space.removenote(n);
+							g.counts.get(lID) >= 3){
+						i++;
+					} else {
+						if(g.counts.get(lID) != null && 
+								g.counts.get(lID) <= 3){
+							if(g.counts.get(lID) == 2){
+								n = space.removenote(n);
+							} else {
+								n = space.readnote(n);
+							}
 						} else {
 							n = space.readnote(n);
 						}
-					} else {
-						n = space.readnote(n);
+						out.writeObject(n);
+						Thread.sleep(100);
+						n = (Note) in.readObject();
+						int count;
+						if(g.counts.get(lID) != null){
+							count = g.counts.get(lID);
+							count++;
+						} else {
+							count = 1;
+						}
+						g.counts.put(lID, count);
+						result.put(lID, n.r); 
 					}
-					out.writeObject(n);
-					Thread.sleep(100);
-					n = (Note) in.readObject();
-					int count;
-					if(g.counts.get(lID) != null){
-						count = g.counts.get(lID);
-						count++;
-					} else {
-						count = 1;
+				}
+				out.writeObject(null);
+				in.close(); 
+				out.close(); 
+				
+				// nothing is done to remedy if the client fail before this stage. 
+
+				System.out.println("Report Size = " + result.size());
+
+				// Generate report
+				File f = new File("LifeGen Report - " +
+						g.getGen() + " - " +
+						g.getRows() + " - " + 
+						g.getCols() + " - " + 
+						clientSocket.getInetAddress().getHostName() +
+						".txt");
+
+				if(f.exists()){
+					f.delete(); 
+				} else {
+					f.createNewFile();
+				}
+
+				try {
+					String s ="";
+					BufferedWriter file = new BufferedWriter(
+							new FileWriter(f));
+					for(int x:result.keySet()){
+						s += "\n____________________\n\t" + x + "\n";
+						s += result.get(x); 
 					}
-					g.counts.put(lID, count);
-					space.postnote(n); 
-					result.put(lID, n.r); 
+					file.write(s); 
+					file.close();
+				} catch (IOException e) {
 				}
-			}
-			//}
-			in.close(); 
-			out.close(); 
-
-			System.out.println("Report Size = " + result.size());
-
-			// Generate report
-			File f = new File("LifeGen Report - " +
-					g.getGen() + " - " +
-					g.getRows() + " - " + 
-					g.getCols() + ".txt");
-
-			if(f.exists()){
-				f.delete(); 
-			} else {
-				f.createNewFile();
-			}
-
-			try {
-				String s ="";
-				BufferedWriter file = new BufferedWriter(
-						new FileWriter(f));
-				for(int x:result.keySet()){
-					s += "\n____________________\n\t" + x + "\n";
-					s += result.get(x); 
-				}
-				file.write(s); 
-				file.close();
-			} catch (IOException e) {
 			}
 			System.exit(0);
 		} catch (Exception e) {

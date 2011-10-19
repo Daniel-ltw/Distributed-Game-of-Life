@@ -11,7 +11,6 @@ package Life;
 import java.io.Serializable;
 import java.util.Vector;
 
-import sun.misc.Regexp;
 public class Space implements Serializable{
 
 	public static final Object formal = null;    // Formal parameter is null
@@ -32,6 +31,10 @@ public class Space implements Serializable{
 		for (int i = 0; i < space.size(); i++) 
 			s = s + ((Note) space.get(i)).toString() + "\n";
 		return s;
+	}
+	
+	synchronized public int Size() {
+		return space.size();
 	}
 
 	// Various signatures for postnote

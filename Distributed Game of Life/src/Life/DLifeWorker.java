@@ -54,11 +54,8 @@ class ClientSocket extends Thread{
 	@Override
 	public void run() {
 		Note n; 
-		while(!socket.isClosed()){
-			try {
-				//retrieve the space as a medium
-				n = (Note) in.readObject();
-
+		try {
+			while((n = (Note) in.readObject()) != null){
 				//read and remove note as according
 				//then generate and post result
 				life = n.l;
@@ -72,18 +69,14 @@ class ClientSocket extends Thread{
 				out.writeObject(new Note("R", n.l, life.toString()));
 				//System.out.println(life.toString());
 				out.flush();
-
-			} /*catch(EOFException e) {
-				System.out.println("Job is Done. Quiting......");
-				System.exit(0); 
-			}*/catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-				System.exit(1);
 			}
+			System.exit(0); 
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
-		System.exit(0); 
 	}
 }
