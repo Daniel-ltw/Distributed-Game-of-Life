@@ -71,9 +71,14 @@ public class Dlife {
 
 class Timer extends Thread{
 
-	public boolean running = true;
-	public int time = 0;
+	public boolean running;
+	public int time;
 
+	public Timer(){
+		this.time = 0;
+		this.running = true;
+	}
+	
 	@Override
 	public void run() {
 		while(running){
@@ -168,6 +173,8 @@ class ClientService extends Thread {
 	}
 
 	public void run() {
+		Timer t = new Timer();
+		t.start();
 		Space space = g.getSpace();
 		ObjectInputStream in;
 		ObjectOutputStream out; 
@@ -217,6 +224,7 @@ class ClientService extends Thread {
 				out.writeObject(null);
 				in.close(); 
 				out.close(); 
+				t.running = false;
 
 				// nothing is done to remedy if the client fail before this stage. 
 
@@ -244,6 +252,7 @@ class ClientService extends Thread {
 						s += "\n____________________\n\t" + x + "\n";
 						s += result.get(x); 
 					}
+					s += "\n\n Running time = " + t.time + "mins";
 					file.write(s); 
 					file.close();
 				} catch (IOException e) {
