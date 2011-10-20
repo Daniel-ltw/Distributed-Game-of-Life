@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 import java.util.HashMap;
 
 public class Dlife {
@@ -141,7 +142,7 @@ class Generator extends Thread{
 			nid++; 
 			Note n = new Note("T", gen, life, nid);
 			notes.put(n.getNID(), n);
-			while(space.Size() >= 65530){
+			while(space.Size() >= 20){
 				try {
 					this.sleep(100);
 				} catch (InterruptedException e) {
@@ -227,6 +228,7 @@ class ClientService extends Thread {
 							count = 1;
 						}
 						g.counts.put(lID, count);
+						space.postnote(n);
 						result.put(lID, n.r); 
 					}
 				}
@@ -238,14 +240,18 @@ class ClientService extends Thread {
 				// nothing is done to remedy if the client fail before this stage. 
 
 				System.out.println("Report Size = " + result.size());
-
-				// Generate report
-				File f = new File("LifeGen Report - " +
-						g.getGen() + " - " +
-						g.getRows() + " - " + 
-						g.getCols() + " - " + 
-						clientSocket.getInetAddress().getHostName() +
-				".txt");
+				
+				Date d = new Date();
+				String folder = "LifeGen Report - " +
+				g.getGen() + " - " +
+				g.getRows() + " - " + 
+				g.getCols() + " - " + 
+				clientSocket.getInetAddress().getHostName()
+				+ " - " + d.toString();
+				
+				File f = new File(folder);
+				
+				f.mkdir();
 
 				if(f.exists()){
 					f.delete(); 
@@ -255,15 +261,18 @@ class ClientService extends Thread {
 
 				try {
 					String s ="";
+					for(int x:result.keySet()){
+						// Generate report
+						f = new File(folder +
+						".txt");
 					BufferedWriter file = new BufferedWriter(
 							new FileWriter(f));
-					for(int x:result.keySet()){
 						s += "\n____________________\n\t" + x + "\n";
 						s += result.get(x); 
-					}
-					s += "\n\n Running time = " + t.time + "mins";
 					file.write(s); 
 					file.close();
+					}
+					s += "\n\n Running time = " + t.time + "mins";
 				} catch (IOException e) {
 				}
 			}
