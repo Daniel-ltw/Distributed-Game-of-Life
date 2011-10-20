@@ -35,17 +35,28 @@ public class Dlife {
 		m_ServerSocket.bind(m_ServerSocket.getLocalSocketAddress());
 		System.out.println("Server running on port: " + m_ServerSocket.getLocalPort());
 		int id = 0;
-		
+		boolean running = true;
+
 		Timer t = new Timer();
-		
-		while (g.isAlive()) {
-			Socket clientSocket = m_ServerSocket.accept();
-			ClientService cliThread = new ClientService(clientSocket, id++, g);
-			cliThread.start();
-			t.start(); 
-		}
+
+		while(running){
+			if(g.counts.get(g.notes.size() - 1) != null && 
+					g.counts.get(g.notes.size() - 1) >= 3) {
+				// the jobs has already been done
+				running = false; 
+			} else {
+				ClientService cliThread = new ClientService(
+						m_ServerSocket.accept()
+						, id++, g);
+				cliThread.start();
+				if(!t.isAlive()){
+					t.start(); 
+				}
+			}
+		} 
+
 		t.running = false;
-		
+
 		// Generate report
 		File f = new File("LifeGen Report Server - " +
 				g.getGen() + " - " +
@@ -61,7 +72,7 @@ public class Dlife {
 		try {
 			BufferedWriter file = new BufferedWriter(
 					new FileWriter(f));
-			
+
 			file.write(t.time + "mins to complete all jobs"); 
 			file.close();
 		} catch (IOException e) {
@@ -78,7 +89,7 @@ class Timer extends Thread{
 		this.time = 0;
 		this.running = true;
 	}
-	
+
 	@Override
 	public void run() {
 		while(running){
@@ -118,7 +129,6 @@ class Generator extends Thread{
 				String temp = "".concat("0").concat(bi);
 				bi = temp;
 			}
-			System.out.println("binary = " + bi);
 			int i = 0;
 			for(int xA = 0; xA < cols; xA++){
 				for(int yA = 0; yA < rows; yA++){
@@ -128,13 +138,12 @@ class Generator extends Thread{
 					i++;
 				}
 			}
-			System.out.println(life.toString());
 			nid++; 
 			Note n = new Note("T", gen, life, nid);
 			notes.put(n.getNID(), n);
-			while(space.Size() >= 50){
+			while(space.Size() >= 65530){
 				try {
-					Thread.sleep(1000);
+					this.sleep(100);
 				} catch (InterruptedException e) {
 				} 
 			}
@@ -258,9 +267,9 @@ class ClientService extends Thread {
 				} catch (IOException e) {
 				}
 			}
-			System.exit(0);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.exit(0); 
 	}
 }
