@@ -94,4 +94,16 @@ public class Space implements Serializable{
 		}
 		return (found ? i : space.size());
 	}
+	
+	synchronized public boolean searchT() {
+		int i = 0; 
+		boolean found = false;
+		while (!found && (i < space.size())) {
+			Note n = (Note) space.get(i);
+			// Note id's must match
+			found = (n.id.equals("T"));
+			if (!found) i++;
+		}
+		return found;
+	}
 }

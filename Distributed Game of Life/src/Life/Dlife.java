@@ -40,7 +40,7 @@ public class Dlife {
 
 		Timer t = new Timer();
 
-		while(running){
+		while(g.getSpace().searchT()){
 			if(g.counts.get(g.notes.size() - 1) != null && 
 					g.counts.get(g.notes.size() - 1) >= 3) {
 				// the jobs has already been done
@@ -142,7 +142,7 @@ class Generator extends Thread{
 			nid++; 
 			Note n = new Note("T", gen, life, nid);
 			notes.put(n.getNID(), n);
-			while(space.Size() >= 20){
+			while(space.Size() >= 50){
 				try {
 					this.sleep(100);
 				} catch (InterruptedException e) {
@@ -188,7 +188,7 @@ class ClientService extends Thread {
 		Space space = g.getSpace();
 		ObjectInputStream in;
 		ObjectOutputStream out; 
-		HashMap<Integer, String> result = new HashMap<Integer, String>();
+		HashMap<Lifeform, String> result = new HashMap<Lifeform, String>();
 
 		System.out.println("Accepted Client : ID - " + clientID + " : Address - "
 				+ clientSocket.getInetAddress().getHostName());
@@ -202,14 +202,14 @@ class ClientService extends Thread {
 
 				for(int i = 0; i < g.notes.size(); i++) {
 					Note n = g.notes.get(i); 
-					int lID = n.l.getID();
-					if(g.counts.get(lID) != null && 
-							g.counts.get(lID) >= 3){
+					Lifeform l = n.l;
+					if(g.counts.get(l.getID()) != null && 
+							g.counts.get(l.getID()) >= 3){
 						i++;
 					} else {
-						if(g.counts.get(lID) != null && 
-								g.counts.get(lID) <= 3){
-							if(g.counts.get(lID) == 2){
+						if(g.counts.get(l.getID()) != null && 
+								g.counts.get(l.getID()) <= 3){
+							if(g.counts.get(l.getID()) == 2){
 								n = space.removenote(n);
 							} else {
 								n = space.readnote(n);
@@ -221,15 +221,14 @@ class ClientService extends Thread {
 						Thread.sleep(100);
 						n = (Note) in.readObject();
 						int count;
-						if(g.counts.get(lID) != null){
-							count = g.counts.get(lID);
+						if(g.counts.get(l.getID()) != null){
+							count = g.counts.get(l.getID());
 							count++;
 						} else {
 							count = 1;
 						}
-						g.counts.put(lID, count);
-						space.postnote(n);
-						result.put(lID, n.r); 
+						g.counts.put(l.getID(), count);
+						result.put(l, n.r); 
 					}
 				}
 				out.writeObject(null);
@@ -240,7 +239,7 @@ class ClientService extends Thread {
 				// nothing is done to remedy if the client fail before this stage. 
 
 				System.out.println("Report Size = " + result.size());
-				
+
 				Date d = new Date();
 				String folder = "LifeGen Report - " +
 				g.getGen() + " - " +
@@ -248,9 +247,9 @@ class ClientService extends Thread {
 				g.getCols() + " - " + 
 				clientSocket.getInetAddress().getHostName()
 				+ " - " + d.toString();
-				
+
 				File f = new File(folder);
-				
+
 				f.mkdir();
 
 				if(f.exists()){
@@ -261,18 +260,25 @@ class ClientService extends Thread {
 
 				try {
 					String s ="";
-					for(int x:result.keySet()){
+					for(Lifeform x:result.keySet()){
 						// Generate report
-						f = new File(folder +
+						f = new File(folder + "/lifeform id :" + x.getID() + 
 						".txt");
+						f.createNewFile();
+						BufferedWriter file = new BufferedWriter(
+								new FileWriter(f));
+						s += "\n____________________\n" + x.toString() + "\n\n";
+						s += result.get(x); 
+						file.write(s); 
+						file.close();
+					}
+					f = new File(folder + "/total time.txt");
+					f.createNewFile();
 					BufferedWriter file = new BufferedWriter(
 							new FileWriter(f));
-						s += "\n____________________\n\t" + x + "\n";
-						s += result.get(x); 
+					s += "\n\n Running time = " + t.time + "mins";
 					file.write(s); 
 					file.close();
-					}
-					s += "\n\n Running time = " + t.time + "mins";
 				} catch (IOException e) {
 				}
 			}
